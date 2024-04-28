@@ -3,6 +3,6 @@ se debe crear un module para poder instalar paquetes
 
 `go.mod` contiene los paquetes instalados
 
-limpia do.mod, borra las versiones de los paquetes agregados al module
+limpia o reset do.mod, borra las versiones de los paquetes agregados al module
 `go mod tidy`
 
