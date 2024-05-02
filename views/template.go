@@ -47,7 +47,7 @@ func Parse(filePath string) (Template, error) {
 func (t Template) Execute(w http.ResponseWriter, data interface{}) {
 	w.Header().Set("Content-Type", "text/html")
 
-	err := t.htmlTpl.Execute(w, nil)
+	err := t.htmlTpl.Execute(w, data)
 
 	if err != nil {
 		log.Printf("Error executing templae %v", err)
