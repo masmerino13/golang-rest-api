@@ -2,20 +2,41 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
+	"path/filepath"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"lens.com/m/v2/views"
 )
 
-func handleFunc(w http.ResponseWriter, r *http.Request) {
+func execTemplate(w http.ResponseWriter, filePath string) {
 	w.Header().Set("Content-Type", "text/html")
-	fmt.Fprint(w, "<h1>Hi Ricardo it works!</h1>")
+
+	tpl, err := views.Parse(filePath)
+
+	if err != nil {
+		log.Printf("Error parsin templae %v", err)
+		http.Error(w, "Error rendering template", http.StatusInternalServerError)
+		return
+	}
+
+	fmt.Println(views.Msg("el mensaje"))
+
+	tpl.Execute(w, nil)
+}
+
+func homeFunc(w http.ResponseWriter, r *http.Request) {
+	tplPath := filepath.Join("templates", "home.gohtml")
+
+	execTemplate(w, tplPath)
 }
 
 func contactHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html")
-	fmt.Fprint(w, "<h1>contact page</h1>")
+	tplPath := filepath.Join("templates", "contact.gohtml")
+
+	execTemplate(w, tplPath)
 }
 
 type Router struct{}
@@ -25,7 +46,7 @@ func (Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	switch path {
 	case "/":
-		handleFunc(w, r)
+		homeFunc(w, r)
 	case "/contact":
 		contactHandler(w, r)
 	default:
@@ -46,7 +67,7 @@ func main() {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
-	r.Get("/", handleFunc)
+	r.Get("/", homeFunc)
 	r.Get("/contact", contactHandler)
 	r.Route("/products", func(r chi.Router) {
 		r.Get("/{productID}", func(w http.ResponseWriter, r *http.Request) {
