@@ -3,11 +3,9 @@ package controllers
 import (
 	"html/template"
 	"net/http"
-
-	"lens.com/m/v2/views"
 )
 
-func StaticHandler(tpl views.Template) http.HandlerFunc {
+func StaticHandler(tpl Template) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tpl.Execute(w, nil)
 	}
@@ -22,7 +20,7 @@ type FAQData struct {
 	Questions []Question
 }
 
-func FAQ(tpl views.Template) http.HandlerFunc {
+func FAQ(tpl Template) http.HandlerFunc {
 	questions := []Question{
 		{
 			Question: "You hungry?",
