@@ -36,6 +36,7 @@ func main() {
 	usersC := controllers.Users{}
 	usersC.Templates.New = views.Must(views.ParseFS(templates.FS, "singup.gohtml", "tailwind.gohtml"))
 	r.Get("/signup", usersC.New)
+	r.Post("/users", usersC.Create)
 
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Not found blah", http.StatusNotFound)
