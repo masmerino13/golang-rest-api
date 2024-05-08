@@ -7,6 +7,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"lens.com/m/v2/controllers"
+	"lens.com/m/v2/models"
 	"lens.com/m/v2/templates"
 	"lens.com/m/v2/views"
 )
@@ -33,7 +34,20 @@ func main() {
 	tpl = views.Must(views.ParseFS(templates.FS, "faq.gohtml", "tailwind.gohtml"))
 	r.Get("/faq", controllers.FAQ(tpl))
 
-	usersC := controllers.Users{}
+	cfg := models.DefaultPostgresConfig()
+	db, err := models.Open(cfg)
+
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+	usersService := models.UserService{
+		DB: db,
+	}
+
+	usersC := controllers.Users{
+		UserService: &usersService,
+	}
 	usersC.Templates.New = views.Must(views.ParseFS(templates.FS, "singup.gohtml", "tailwind.gohtml"))
 	r.Get("/signup", usersC.New)
 	r.Post("/users", usersC.Create)
