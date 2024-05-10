@@ -53,7 +53,7 @@ func main() {
 	r.Post("/users", usersC.Create)
 	usersC.Templates.SignIn = views.Must(views.ParseFS(templates.FS, "singin.gohtml", "tailwind.gohtml"))
 	r.Get("/signin", usersC.SignIn)
-	r.Post("/signin", usersC.Auth)
+	r.Get("/users/me", usersC.CurrentUser)
 
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Not found blah", http.StatusNotFound)

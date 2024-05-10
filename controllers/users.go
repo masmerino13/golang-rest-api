@@ -47,5 +47,25 @@ func (u Users) Auth(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	cookie := http.Cookie{
+		Name:     "email",
+		Value:    user.Email,
+		Path:     "/",
+		HttpOnly: true,
+	}
+
+	http.SetCookie(w, &cookie)
+
 	fmt.Fprintf(w, "user authenticated: %+v", user)
+}
+
+func (u Users) CurrentUser(w http.ResponseWriter, r *http.Request) {
+	email, err := r.Cookie("email")
+
+	if err != nil {
+		http.Error(w, "error getting email cookie", http.StatusInternalServerError)
+		return
+	}
+
+	fmt.Fprintf(w, "current user: %s", email.Value)
 }
