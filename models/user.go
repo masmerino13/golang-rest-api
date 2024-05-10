@@ -46,3 +46,25 @@ func (us *UserService) Create(newUser NewUser) (*User, error) {
 
 	return &user, nil
 }
+
+func (us *UserService) Authenticate(email, password string) (*User, error) {
+	email = strings.ToLower(email)
+	user := User{
+		Email: email,
+	}
+
+	row := us.DB.QueryRow("SELECT id, password_hash FROM users WHERE email = $1", email)
+	err := row.Scan(&user.ID, &user.PasswordHash)
+
+	if err != nil {
+		return nil, fmt.Errorf("error finding user: %w", err)
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password))
+
+	if err != nil {
+		return nil, fmt.Errorf("invalid password: %w", err)
+	}
+
+	return &user, nil
+}
