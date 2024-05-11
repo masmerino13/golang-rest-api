@@ -1,8 +1,10 @@
 package views
 
 import (
+	"bytes"
 	"fmt"
 	"html/template"
+	"io"
 	"io/fs"
 	"log"
 	"net/http"
@@ -59,13 +61,18 @@ func (t Template) Execute(w http.ResponseWriter, r *http.Request, data interface
 	)
 	w.Header().Set("Content-Type", "text/html")
 
-	err = tpl.Execute(w, data)
+	// NOTE: will cause performance issues if there are many HTML pages with a lot of HTML content
+	var buf bytes.Buffer
+
+	err = tpl.Execute(&buf, data)
 
 	if err != nil {
 		log.Printf("Error executing templae %v", err)
 		http.Error(w, "Error executing template", http.StatusInternalServerError)
 		return
 	}
+
+	io.Copy(w, &buf)
 }
 
 func Msg(m string) (string, string) {
