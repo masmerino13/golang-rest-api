@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/gorilla/csrf"
 	"lens.com/m/v2/controllers"
 	"lens.com/m/v2/models"
 	"lens.com/m/v2/templates"
@@ -59,5 +60,9 @@ func main() {
 		http.Error(w, "Not found blah", http.StatusNotFound)
 	})
 
-	http.ListenAndServe(":"+port, r)
+	// TODO: Set this ke in a secure way
+	csrfKey := "gTHGA14aqlIiv6F6FhTMliv0AoW3ju71lOvnRJ9PWzZ8ML8aHVyXoziTsO3pkfDc05Y7AFH3Y5IPARnU7mtPzVHtju07wWUSf0Vi"
+	csrfMw := csrf.Protect([]byte(csrfKey), csrf.Secure(false))
+
+	http.ListenAndServe(":"+port, csrfMw(r))
 }
