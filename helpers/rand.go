@@ -6,8 +6,6 @@ import (
 	"fmt"
 )
 
-const SessionTokenBytes = 32
-
 func Bytes(n int) ([]byte, error) {
 	b := make([]byte, n)
 
