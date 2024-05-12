@@ -42,12 +42,18 @@ func main() {
 		panic(err)
 	}
 	defer db.Close()
+
 	usersService := models.UserService{
+		DB: db,
+	}
+	sessionService := models.SessionService{
 		DB: db,
 	}
 
 	usersC := controllers.Users{
-		UserService: &usersService,
+		// NOTE: this way we set the model to the controller
+		UserService:    &usersService,
+		SessionService: &sessionService,
 	}
 	usersC.Templates.New = views.Must(views.ParseFS(templates.FS, "singup.gohtml", "tailwind.gohtml"))
 	r.Get("/signup", usersC.New)

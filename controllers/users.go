@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"lens.com/m/v2/helpers"
 	"lens.com/m/v2/models"
 )
 
@@ -12,6 +13,7 @@ type Users struct {
 		New    Template
 		SignIn Template
 	}
+	// NOTE: Here we define the model, BUT it's required to be set in main.go in order to work
 	UserService    *models.UserService
 	SessionService *models.SessionService
 }
@@ -50,14 +52,8 @@ func (u Users) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cookie := http.Cookie{
-		Name:     "authToken",
-		Value:    session.Token,
-		Path:     "/",
-		HttpOnly: true,
-	}
+	helpers.SetCookie(w, helpers.CookieAuthToken, session.Token)
 
-	http.SetCookie(w, &cookie)
 	http.Redirect(w, r, "/users/me", http.StatusFound)
 
 	fmt.Fprintf(w, "user created: %+v", user)
@@ -80,14 +76,7 @@ func (u Users) Auth(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cookie := http.Cookie{
-		Name:     "authToken",
-		Value:    session.Token,
-		Path:     "/",
-		HttpOnly: true,
-	}
-
-	http.SetCookie(w, &cookie)
+	helpers.SetCookie(w, helpers.CookieAuthToken, session.Token)
 
 	fmt.Fprintf(w, "user authenticated: %+v", user)
 
@@ -95,7 +84,7 @@ func (u Users) Auth(w http.ResponseWriter, r *http.Request) {
 }
 
 func (u Users) CurrentUser(w http.ResponseWriter, r *http.Request) {
-	authToken, err := r.Cookie("authUser")
+	authToken, err := r.Cookie(helpers.CookieAuthToken)
 
 	if err != nil {
 		fmt.Println(err)
