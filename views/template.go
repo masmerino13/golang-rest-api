@@ -10,6 +10,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/csrf"
+	"lens.com/m/v2/helpers"
 )
 
 type Template struct {
@@ -29,6 +30,9 @@ func ParseFS(fs fs.FS, patterns ...string) (Template, error) {
 	tpl.Funcs(template.FuncMap{
 		"csrfField": func() template.HTML {
 			return `<input type="hidden">`
+		},
+		"isLogin": func() bool {
+			return false
 		},
 	})
 
@@ -56,6 +60,18 @@ func (t Template) Execute(w http.ResponseWriter, r *http.Request, data interface
 		template.FuncMap{
 			"csrfField": func() template.HTML {
 				return csrf.TemplateField(r)
+			},
+			"isLogin": func() bool {
+				cookie, err := r.Cookie(helpers.CookieAuthToken)
+
+				if err != nil {
+					log.Printf("Error reading cookie %v", err)
+					return false
+				}
+
+				err = cookie.Valid()
+
+				return err == nil
 			},
 		},
 	)

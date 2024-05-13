@@ -78,8 +78,6 @@ func (u Users) Auth(w http.ResponseWriter, r *http.Request) {
 
 	helpers.SetCookie(w, helpers.CookieAuthToken, session.Token)
 
-	fmt.Fprintf(w, "user authenticated: %+v", user)
-
 	http.Redirect(w, r, "/users/me", http.StatusFound)
 }
 
@@ -101,4 +99,33 @@ func (u Users) CurrentUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Fprintf(w, "current user: %s", user.Email)
+}
+
+func (u Users) SingOut(w http.ResponseWriter, r *http.Request) {
+	fmt.Printf("token")
+	authToken, err := r.Cookie(helpers.CookieAuthToken)
+
+	fmt.Printf("token: %v", authToken)
+
+	if err != nil {
+		fmt.Println(err)
+		http.Redirect(w, r, "/signin", http.StatusFound)
+		return
+	}
+
+	err = u.SessionService.Delete(authToken.Value)
+
+	fmt.Printf("token 2: %v", err)
+
+	if err != nil {
+		fmt.Fprintf(w, "Error singin out")
+		http.Error(w, "Something went wrong", http.StatusInternalServerError)
+		return
+	}
+
+	fmt.Printf("pasa")
+
+	helpers.DeleteCookie(w, helpers.CookieAuthToken)
+
+	http.Redirect(w, r, "/signin", http.StatusFound)
 }
