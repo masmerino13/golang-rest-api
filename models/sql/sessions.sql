@@ -1,5 +1,0 @@
-CREATE TABLE sessions (
-  id SERIAL PRIMARY KEY,
-  user_id INTEGER UNIQUE NOT NULL,
-  token_hash TEXT UNIQUE NOT NULL
-);

@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/gorilla/csrf"
 	"lens.com/m/v2/controllers"
+	"lens.com/m/v2/migrations"
 	"lens.com/m/v2/models"
 	"lens.com/m/v2/templates"
 	"lens.com/m/v2/views"
@@ -36,12 +37,19 @@ func main() {
 	r.Get("/faq", controllers.FAQ(tpl))
 
 	cfg := models.DefaultPostgresConfig()
+
 	db, err := models.Open(cfg)
 
 	if err != nil {
 		panic(err)
 	}
 	defer db.Close()
+
+	err = models.MigrateFS(db, migrations.FS, ".")
+
+	if err != nil {
+		panic(err)
+	}
 
 	usersService := models.UserService{
 		DB: db,
