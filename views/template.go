@@ -10,7 +10,8 @@ import (
 	"net/http"
 
 	"github.com/gorilla/csrf"
-	"lens.com/m/v2/helpers"
+	"lens.com/m/v2/context"
+	"lens.com/m/v2/models"
 )
 
 type Template struct {
@@ -33,6 +34,9 @@ func ParseFS(fs fs.FS, patterns ...string) (Template, error) {
 		},
 		"isLogin": func() bool {
 			return false
+		},
+		"currentUser": func() (template.HTML, error) {
+			return "", fmt.Errorf("Current user not implemented")
 		},
 	})
 
@@ -61,17 +65,8 @@ func (t Template) Execute(w http.ResponseWriter, r *http.Request, data interface
 			"csrfField": func() template.HTML {
 				return csrf.TemplateField(r)
 			},
-			"isLogin": func() bool {
-				cookie, err := r.Cookie(helpers.CookieAuthToken)
-
-				if err != nil {
-					log.Printf("Error reading cookie %v", err)
-					return false
-				}
-
-				err = cookie.Valid()
-
-				return err == nil
+			"currentUser": func() *models.User {
+				return context.User(r.Context())
 			},
 		},
 	)

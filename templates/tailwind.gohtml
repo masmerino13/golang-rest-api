@@ -13,7 +13,7 @@
       <span class="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">Lens</span>
   </a>
   <div class="flex md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
-      {{if isLogin}}
+      {{if currentUser}}
       <div>
         <form method="POST" action="/users/signout">
           <button

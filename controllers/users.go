@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"lens.com/m/v2/context"
 	"lens.com/m/v2/helpers"
 	"lens.com/m/v2/models"
 )
@@ -82,21 +83,7 @@ func (u Users) Auth(w http.ResponseWriter, r *http.Request) {
 }
 
 func (u Users) CurrentUser(w http.ResponseWriter, r *http.Request) {
-	authToken, err := r.Cookie(helpers.CookieAuthToken)
-
-	if err != nil {
-		fmt.Println(err)
-		http.Redirect(w, r, "/signin", http.StatusFound)
-		return
-	}
-
-	user, err := u.SessionService.User(authToken.Value)
-
-	if err != nil {
-		fmt.Println(err)
-		http.Redirect(w, r, "/signin", http.StatusFound)
-		return
-	}
+	user := context.User(r.Context())
 
 	fmt.Fprintf(w, "current user: %s", user.Email)
 }
@@ -128,4 +115,44 @@ func (u Users) SingOut(w http.ResponseWriter, r *http.Request) {
 	helpers.DeleteCookie(w, helpers.CookieAuthToken)
 
 	http.Redirect(w, r, "/signin", http.StatusFound)
+}
+
+type UserMiddleware struct {
+	SessionService *models.SessionService
+}
+
+func (umw UserMiddleware) SetUser(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		authToken, err := r.Cookie(helpers.CookieAuthToken)
+
+		if err != nil {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		user, err := umw.SessionService.User(authToken.Value)
+
+		if err != nil {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		ctx := context.WithUser(r.Context(), user)
+
+		r = r.WithContext(ctx)
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (umw UserMiddleware) RequireUser(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		user := context.User(r.Context())
+
+		if user == nil {
+			http.Redirect(w, r, "/signin", http.StatusFound)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }
